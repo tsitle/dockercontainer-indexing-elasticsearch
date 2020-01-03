@@ -157,6 +157,43 @@ echo -n "$TMP_IMG_VER_SHORT" | grep -q -E "[0-9]{1,2}[\.][0-9]{1,2}" || {
 	exit 1
 }
 
+LVAR_REPO_PREFIX="tsle"
+LVAR_IMAGE_NAME="indexing-elasticsearch-$(_getCpuArch debian_dist)"
+LVAR_IMAGE_VER="$TMP_IMG_VER_SHORT"
+
+LVAR_IMG_FULL="${LVAR_IMAGE_NAME}:${LVAR_IMAGE_VER}"
+
+# ----------------------------------------------------------
+
+# @param string $1 Docker Image name
+# @param string $2 optional: Docker Image version
+#
+# @returns int If Docker Image exists 0, otherwise 1
+function _getDoesDockerImageExist() {
+	local TMP_SEARCH="$1"
+	[ -n "$2" ] && TMP_SEARCH="$TMP_SEARCH:$2"
+	local TMP_AWK="$(echo -n "$1" | sed -e 's/\//\\\//g')"
+	#echo "  checking '$TMP_SEARCH'"
+	local TMP_IMGID="$(docker image ls "$TMP_SEARCH" | awk '/^'$TMP_AWK' / { print $3 }')"
+	[ -n "$TMP_IMGID" ] && return 0 || return 1
+}
+
+_getDoesDockerImageExist "$LVAR_IMAGE_NAME" "$LVAR_IMAGE_VER"
+if [ $? -ne 0 ]; then
+	LVAR_IMG_FULL="${LVAR_REPO_PREFIX}/$LVAR_IMG_FULL"
+	_getDoesDockerImageExist "${LVAR_REPO_PREFIX}/${LVAR_IMAGE_NAME}" "$LVAR_IMAGE_VER"
+	if [ $? -ne 0 ]; then
+		echo "$VAR_MYNAME: Trying to pull image from repository '${LVAR_REPO_PREFIX}/'..."
+		docker pull ${LVAR_IMG_FULL}
+		if [ $? -ne 0 ]; then
+			echo "$VAR_MYNAME: Error: could not pull image '${LVAR_IMG_FULL}'. Aborting." >/dev/stderr
+			exit 1
+		fi
+	fi
+fi
+
+# ----------------------------------------------------------
+
 TMP_CONTNAME="indexing-elasticsearch${TMP_IMGVER_STR}-cont"
 
 echo "Starting container '$TMP_CONTNAME' (TCP port 92${TMP_IMGVER_STR})..."
@@ -177,4 +214,4 @@ docker run \
 		-e "CF_SYSUSR_ES_USER_ID=$LCFG_ES_USER_ID" \
 		-e "CF_SYSUSR_ES_GROUP_ID=$LCFG_ES_GROUP_ID" \
 		--name "$TMP_CONTNAME" \
-		indexing-elasticsearch-$(_getCpuArch debian_dist):$OPT_IMG_VER
+		$LVAR_IMG_FULL
