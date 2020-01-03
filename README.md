@@ -16,3 +16,7 @@ To stop the container use
 $ ./dc-stop.sh 5.6
 
 ```
+
+## Required Docker Image
+The Docker Image **indexing-elasticsearch-\<ARCH\>** will automaticly be downloaded from the Docker Hub.  
+The source for the image can be found here [https://github.com/tsitle/dockerimage-indexing-elasticsearch](https://github.com/tsitle/dockerimage-indexing-elasticsearch).
