@@ -1,4 +1,4 @@
-# Elasticsearch Docker Container for AARCH64 and X64
+# Elasticsearch Docker Container for AARCH64, ARMv7l, X86 and X64
 
 ## Docker Container usage
 To start an Elasticsearch 5.6 container execute
