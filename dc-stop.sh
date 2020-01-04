@@ -46,8 +46,9 @@ VAR_MYDIR="$(dirname "$VAR_MYDIR")"
 # ----------------------------------------------------------
 
 function printUsageAndExit() {
-	echo "Usage: $VAR_MYNAME VERSION" >/dev/stderr
-	echo "Examples: $VAR_MYNAME 5.6" >/dev/stderr
+	echo "Usage: $VAR_MYNAME <VERSION>" >/dev/stderr
+	echo "Examples: $VAR_MYNAME 1.7" >/dev/stderr
+	echo "          $VAR_MYNAME 5.6" >/dev/stderr
 	echo "          $VAR_MYNAME 6.6" >/dev/stderr
 	exit 1
 }
@@ -75,5 +76,7 @@ echo -n "$TMP_IMG_VER_SHORT" | grep -q -E "[0-9]{1,2}[\.][0-9]{1,2}" || {
 	echo "Invalid version. Must have format 'xx.xx'." >/dev/stderr
 	exit 1
 }
+
+# ----------------------------------------------------------
 
 docker container stop indexing-elasticsearch${TMP_IMGVER_STR}-cont
