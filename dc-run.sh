@@ -55,6 +55,14 @@ function _getCpuArch() {
 		x86_64*)
 			echo -n "amd64"
 			;;
+		i686*)
+			if [ "$1" = "debian_dist" ]; then
+				echo -n "i386"
+			else
+				echo "$VAR_MYNAME: Error: invalid arg '$1'" >/dev/stderr
+				return 1
+			fi
+			;;
 		aarch64*)
 			if [ "$1" = "debian_rootfs" ]; then
 				echo -n "arm64v8"
@@ -125,17 +133,12 @@ function _checkVmMaxMapCount() {
 		[ $TMP_MAXMAPCNT -gt $TMP_MMC_MIN_M1 ] && TMP_IS_MMC_OK=true
 	fi
 	if [ "$TMP_IS_MMC_OK" != "true" ]; then
-		echo "Elasticsearch (5.6) requires vm.max_map_count >= 262144" >/dev/stderr
+		echo "Elasticsearch (v${LVAR_IMG_VER_SHORT}) requires vm.max_map_count >= 262144" >/dev/stderr
 		echo "Use 'sudo sysctl -w vm.max_map_count=262144'" >/dev/stderr
 		echo "or 'echo vm.max_map_count=262144 | sudo tee -a /etc/sysctl.conf'" >/dev/stderr
 		exit 1
 	fi
 }
-
-case "$OSTYPE" in
-	linux*) _checkVmMaxMapCount ;;
-	*) echo -n ;;
-esac
 
 # ----------------------------------------------------------
 
@@ -149,17 +152,31 @@ TMP_GID="$(id -g)"
 
 # ----------------------------------------------------------
 
-TMP_IMG_VER_SHORT="$(echo -n "$OPT_IMG_VER" | cut -f1-2 -d.)"
-TMP_IMGVER_STR="$(echo -n "$TMP_IMG_VER_SHORT" | tr -d .)"
+LVAR_IMG_VER_SHORT="$(echo -n "$OPT_IMG_VER" | cut -f1-2 -d.)"
+TMP_IMGVER_STR="$(echo -n "$LVAR_IMG_VER_SHORT" | tr -d .)"
 
-echo -n "$TMP_IMG_VER_SHORT" | grep -q -E "[0-9]{1,2}[\.][0-9]{1,2}" || {
+echo -n "$LVAR_IMG_VER_SHORT" | grep -q -E "[0-9]{1,2}[\.][0-9]{1,2}" || {
 	echo "Invalid version. Must have format 'xx.xx'." >/dev/stderr
 	exit 1
 }
 
+case "$LVAR_IMG_VER_SHORT" in
+	5.6|6.6)
+		case "$OSTYPE" in
+			linux*) _checkVmMaxMapCount ;;
+			*) echo -n ;;
+		esac
+		;;
+	*)
+		echo -n
+		;;
+esac
+
+# ----------------------------------------------------------
+
 LVAR_REPO_PREFIX="tsle"
 LVAR_IMAGE_NAME="indexing-elasticsearch-$(_getCpuArch debian_dist)"
-LVAR_IMAGE_VER="$TMP_IMG_VER_SHORT"
+LVAR_IMAGE_VER="$LVAR_IMG_VER_SHORT"
 
 LVAR_IMG_FULL="${LVAR_IMAGE_NAME}:${LVAR_IMAGE_VER}"
 
@@ -214,4 +231,13 @@ docker run \
 		-e "CF_SYSUSR_ES_USER_ID=$LCFG_ES_USER_ID" \
 		-e "CF_SYSUSR_ES_GROUP_ID=$LCFG_ES_GROUP_ID" \
 		--name "$TMP_CONTNAME" \
-		$LVAR_IMG_FULL
+		$LVAR_IMG_FULL || exit 1
+
+command -v curl >/dev/null 2>&1 && {
+	TMP_ES_AUTH=""
+	[ "$LVAR_IMG_VER_SHORT" = "5.6" ] && TMP_ES_AUTH="-u elastic:changeme "
+	echo "You can fetch the available ES indices by running:"
+	echo "  curl -X GET ${TMP_ES_AUTH}\"localhost:92${TMP_IMGVER_STR}/_cat/indices/*?v&s=index"\"
+}
+
+exit 0

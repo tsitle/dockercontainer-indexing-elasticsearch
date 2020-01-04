@@ -17,6 +17,9 @@ $ ./dc-stop.sh 5.6
 
 ```
 
+You may replace the version number with any number that corresponds  
+to an available Docker Image (indexing-elasticsearch-\<ARCH\>:\<VERSION\>).
+
 ## Required Docker Image
 The Docker Image **indexing-elasticsearch-\<ARCH\>** will automaticly be downloaded from the Docker Hub.  
 The source for the image can be found here [https://github.com/tsitle/dockerimage-indexing-elasticsearch](https://github.com/tsitle/dockerimage-indexing-elasticsearch).
