@@ -120,10 +120,10 @@ cd "$VAR_MYDIR" || exit 1
 # ----------------------------------------------------------
 
 function _checkVmMaxMapCount() {
-	TMP_IS_MMC_OK=false
-	TMP_MAXMAPCNT=""
+	local TMP_IS_MMC_OK=false
+	local TMP_MAXMAPCNT=""
 	[ -f /etc/sysctl.conf ] && TMP_MAXMAPCNT="$(grep vm.max_map_count /etc/sysctl.conf)"
-	TMP_MMC_MIN_M1=$(( 262144 - 1 ))
+	local TMP_MMC_MIN_M1=$(( 262144 - 1 ))
 	if [ -z "$TMP_MAXMAPCNT" ]; then
 		TMP_MAXMAPCNT="$(sysctl -n vm.max_map_count 2>/dev/null)"
 	fi
