@@ -4,6 +4,13 @@
 # by TS, May 2019
 #
 
+# ----------------------------------------------------------
+
+# update Docker Image from remote repository? [true|false]
+LCFG_UPDATE_REMOTE_IMAGE=true
+
+# ----------------------------------------------------------
+
 # @param string $1 Path
 # @param int $2 Recursion level
 #
@@ -207,6 +214,9 @@ if [ $? -ne 0 ]; then
 			echo "$VAR_MYNAME: Error: could not pull image '${LVAR_IMG_FULL}'. Aborting." >/dev/stderr
 			exit 1
 		fi
+	elif [ "$LCFG_UPDATE_REMOTE_IMAGE" = "true" ]; then
+		echo "$VAR_MYNAME: Updating image from repository '${LVAR_REPO_PREFIX}/'..."
+		docker pull ${LVAR_IMG_FULL} || exit 1
 	fi
 fi
 
