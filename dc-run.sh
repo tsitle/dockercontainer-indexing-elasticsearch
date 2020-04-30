@@ -248,7 +248,7 @@ command -v curl >/dev/null 2>&1 && {
 	TMP_ES_AUTH=""
 	[ "$LVAR_IMG_VER_SHORT" = "5.6" ] && TMP_ES_AUTH="-u elastic:changeme "
 	echo "You can fetch the available ES indices by running:"
-	echo "  curl -X GET ${TMP_ES_AUTH}\"localhost:92${TMP_IMGVER_STR}/_cat/indices/*?v&s=index"\"
+	echo "  curl -X GET ${TMP_ES_AUTH}\"localhost:92${TMP_IMGVER_STR}/_cat/indices/*?v&s=index\""
 }
 
 exit 0
